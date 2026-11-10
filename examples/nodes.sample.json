@@ -1,0 +1,93 @@
+{
+  "$comment": "Fictional inventory for documentation and tests. Addresses are RFC 5737 / RFC 6761 documentation values. Safe to publish.",
+  "version": 2,
+  "nodes": [
+    {
+      "id": "ctl-1",
+      "name": "ctl-1",
+      "display_name": "Controller",
+      "ssh": "local",
+      "user": "ops",
+      "os": "linux",
+      "os_detail": "Ubuntu 24.04",
+      "role": "dev",
+      "roles": ["control.plane", "vault.origin", "gateway", "storage.primary", "backup.target", "backup.source", "repo.owner", "memory.store"],
+      "primary_for": ["backup.source"],
+      "mcp_profiles": ["memory"],
+      "addresses": {
+        "lan_name": "ctl-1.home.example",
+        "lan_ipv4": "192.0.2.11",
+        "tailnet_name": "ctl-1.tailnet.example",
+        "tailnet_ipv4": "198.51.100.11"
+      },
+      "wol": { "mac": "02:00:5e:00:53:11", "nic": "eth0", "broadcast": "192.0.2.255" },
+      "admin_group": "ops-admins",
+      "capabilities": { "gpu": { "vendor": "intel", "model": "integrated", "vram_gb": 0, "integrated": true }, "ram_gb": 32, "zfs": true, "basis": "declared" },
+      "services": { "litellm": { "port": 4000 }, "decision-memory": { "path": "~/decision-memory" } },
+      "status": "active",
+      "source": "declared",
+      "provenance": {
+        "created_at": "2026-01-01T00:00:00Z", "created_by": { "login": "ops", "uid": 1000 },
+        "changed_at": "2026-01-01T00:00:00Z", "changed_by": { "login": "ops", "uid": 1000 },
+        "change": "genesis"
+      }
+    },
+    {
+      "id": "gpu-1",
+      "name": "gpu-1",
+      "display_name": "GPU server",
+      "ssh": "gpu-1",
+      "user": "ops",
+      "os": "linux",
+      "role": "server",
+      "roles": ["compute.gpu", "backup.source"],
+      "addresses": { "lan_name": "gpu-1.home.example", "lan_ipv4": "192.0.2.14", "tailnet_name": "gpu-1.tailnet.example" },
+      "admin_group": "ops-admins",
+      "capabilities": { "gpu": { "vendor": "nvidia", "model": "example-32g", "vram_gb": 32 }, "ram_gb": 64, "zfs": true, "basis": "declared" },
+      "services": { "vllm": { "port": 8000 } },
+      "status": "active",
+      "source": "declared",
+      "provenance": {
+        "created_at": "2026-01-01T00:00:00Z", "created_by": { "login": "ops", "uid": 1000 },
+        "changed_at": "2026-01-01T00:00:00Z", "changed_by": { "login": "ops", "uid": 1000 },
+        "change": "genesis"
+      }
+    },
+    {
+      "id": "web-1",
+      "name": "web-1",
+      "ssh": "web-1",
+      "os": "linux",
+      "role": "server",
+      "roles": ["web.prod", "backup.source"],
+      "addresses": { "public_name": "www.example.com", "tailnet_name": "web-1.tailnet.example" },
+      "admin_group": "ops-admins",
+      "status": "active",
+      "source": "declared",
+      "provenance": {
+        "created_at": "2026-01-01T00:00:00Z", "created_by": { "login": "ops", "uid": 1000 },
+        "changed_at": "2026-01-01T00:00:00Z", "changed_by": { "login": "ops", "uid": 1000 },
+        "change": "genesis"
+      }
+    },
+    {
+      "id": "laptop-1",
+      "name": "laptop-1",
+      "ssh": "laptop-1",
+      "os": "windows-git-bash",
+      "role": "dev",
+      "roles": ["client"],
+      "admin_group": "ops-admins",
+      "status": "retired",
+      "retired_at": "2026-02-01T00:00:00Z",
+      "retired_reason": "replaced by a newer laptop",
+      "source": "declared",
+      "provenance": {
+        "created_at": "2026-01-01T00:00:00Z", "created_by": { "login": "ops", "uid": 1000 },
+        "changed_at": "2026-02-01T00:00:00Z", "changed_by": { "login": "ops", "uid": 1000 },
+        "approved_by": { "login": "ops2", "uid": 1001 },
+        "change": "P-20260201T000000Z-abc123"
+      }
+    }
+  ]
+}

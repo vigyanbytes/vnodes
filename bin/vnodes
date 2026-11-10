@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+"""vnodes launcher: system python3, stdlib only (no venv, no pip)."""
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from vnodes.cli import main  # noqa: E402
+
+sys.exit(main(sys.argv[1:]))

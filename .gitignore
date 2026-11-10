@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.tmp
+.vnodes.lock
+# a real inventory never lives in this repository
+/nodes.json
+/changes.jsonl
+/vnodes.config.json
+/plans/

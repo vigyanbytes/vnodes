@@ -1,0 +1,419 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:vigyan-nodes:schema:node:2.1",
+  "x-schema-version": "2.1",
+  "title": "vnodes node record (schema v2.1)",
+  "description": "One machine, as every source describes it: an admin by hand (vnodes add), an enrolment kit run on the node, a capability probe, and later discovery. All of them emit THIS record. Other projects may vendor this file byte-for-byte and reference it by this $id, which pins the version. The inventory (nodes.schema.json) additionally requires status, admin_group and provenance, which vnodes writes. Never holds keys, tokens or passwords. 2.1 is additive over 2.0: every 2.0 node is a valid 2.1 node.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "ssh",
+    "os"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/slug",
+      "description": "Stable identifier. Never changes once added; never reused after retirement."
+    },
+    "name": {
+      "$ref": "#/$defs/slug",
+      "description": "Short hostname. v1 readers match it against `hostname -s`."
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "host": {
+      "$ref": "#/$defs/hostname",
+      "description": "Resolvable name when different from `name` (v1 field)."
+    },
+    "ssh": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SSH target or alias as typed (v1 field). `local` = the controller itself; `none` = not reachable by SSH."
+    },
+    "ssh_port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "user": {
+      "type": "string",
+      "description": "Login user on the node (informational, v1 field)."
+    },
+    "owner": {
+      "$ref": "#/$defs/principal",
+      "description": "The principal who owns the node (v2.1): the person who answers for it, e.g. the operator who ran the kit on it. Derived from an OS login, never typed. Distinct from admin_group (who administers) and user (login used to reach it)."
+    },
+    "os": {
+      "enum": [
+        "linux",
+        "windows",
+        "macos",
+        "windows-git-bash"
+      ],
+      "x-deprecated-enum": {
+        "windows-git-bash": "use os=windows + shell=git-bash"
+      },
+      "description": "Operating system family. 'windows-git-bash' (v2.0) is accepted but deprecated: validators warn and `vnodes export` emits os=windows + shell=git-bash. With windows-git-bash, shell may only be git-bash."
+    },
+    "shell": {
+      "enum": [
+        "bash",
+        "zsh",
+        "powershell",
+        "git-bash"
+      ],
+      "description": "Login shell agents and installers should use on the node (v2.1). Optional; consumers default to powershell on windows and bash elsewhere."
+    },
+    "os_detail": {
+      "type": "string",
+      "description": "Free text, e.g. 'Ubuntu 24.04'."
+    },
+    "role": {
+      "enum": [
+        "dev",
+        "server"
+      ],
+      "description": "Coarse profile for tools that install per-node defaults (v1 field)."
+    },
+    "roles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/role"
+      },
+      "description": "What the node does in the fleet. Consumers resolve a role to its holders (see docs/CONSUMERS.md)."
+    },
+    "primary_for": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/role"
+      },
+      "description": "Roles where this node wins when several nodes hold them. Must be a subset of roles."
+    },
+    "enabled": {
+      "type": "boolean",
+      "description": "Operational pause (sync/push tools skip enabled=false). Distinct from status=retired."
+    },
+    "clis": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "claude",
+          "codex",
+          "opencode",
+          "agy"
+        ]
+      }
+    },
+    "bash": {
+      "type": "string"
+    },
+    "mcp_profiles": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      },
+      "description": "Named tool profiles a configuration tool should wire on this node."
+    },
+    "addresses": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Names preferred; IPs optional. No discovery fills these in this phase.",
+      "properties": {
+        "lan_name": {
+          "$ref": "#/$defs/hostname"
+        },
+        "lan_ipv4": {
+          "$ref": "#/$defs/ipv4"
+        },
+        "tailnet_name": {
+          "$ref": "#/$defs/hostname"
+        },
+        "tailnet_ipv4": {
+          "$ref": "#/$defs/ipv4"
+        },
+        "public_name": {
+          "$ref": "#/$defs/hostname"
+        }
+      }
+    },
+    "wol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mac"
+      ],
+      "properties": {
+        "mac": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{2}(:[0-9a-f]{2}){5}$"
+        },
+        "nic": {
+          "type": "string"
+        },
+        "broadcast": {
+          "$ref": "#/$defs/ipv4"
+        }
+      }
+    },
+    "admin_group": {
+      "type": "string",
+      "pattern": "^[a-z_][a-z0-9_-]*$",
+      "description": "OS group whose members administer this node."
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Declared by hand in this phase. A later capability probe may only PROPOSE changes as plans.",
+      "properties": {
+        "gpu": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "vendor": {
+              "enum": [
+                "nvidia",
+                "amd",
+                "intel",
+                "apple",
+                "other"
+              ]
+            },
+            "model": {
+              "type": "string"
+            },
+            "vram_gb": {
+              "type": "number",
+              "minimum": 0
+            },
+            "integrated": {
+              "type": "boolean"
+            }
+          }
+        },
+        "cpu_cores": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ram_gb": {
+          "type": "number",
+          "minimum": 0
+        },
+        "zfs": {
+          "type": "boolean"
+        },
+        "basis": {
+          "enum": [
+            "declared",
+            "probed"
+          ],
+          "description": "declared = typed by an admin; probed = accepted from a capability probe plan."
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "description": "Services the node hosts, e.g. a model server, a gateway, a database.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "path": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "active",
+        "retired"
+      ]
+    },
+    "retired_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "retired_reason": {
+      "type": "string"
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Reserved slot for a signed node card (mDNS / DNS-SD / signed-manifest discovery, not implemented; see docs/DISCOVERY.md): the card's node_id and host-key fingerprint, and the admin who approved the join. Written only when an admin applies a discovery plan. Empty until then.",
+      "properties": {
+        "node_id": {
+          "type": "string"
+        },
+        "host_key_sha256": {
+          "type": "string"
+        },
+        "approved_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/actor"
+        }
+      }
+    },
+    "source": {
+      "enum": [
+        "declared",
+        "discovered"
+      ]
+    },
+    "enrolment": {
+      "$ref": "#/$defs/enrolment"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "created_at",
+        "created_by",
+        "changed_at",
+        "changed_by",
+        "change"
+      ],
+      "additionalProperties": false,
+      "description": "Written by vnodes on apply. Never hand-edited.",
+      "properties": {
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "created_by": {
+          "$ref": "#/$defs/actor"
+        },
+        "changed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "changed_by": {
+          "$ref": "#/$defs/actor"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/actor"
+        },
+        "change": {
+          "type": "string",
+          "description": "plan id (or 'genesis') of the last change to this node"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "object",
+      "description": "An identity derived from the OS login (pwd/grp via NSS) at the time of the action. Never typed.",
+      "required": [
+        "login",
+        "uid"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "login": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uid": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "role": {
+      "enum": [
+        "storage.primary",
+        "backup.target",
+        "backup.source",
+        "repo.owner",
+        "vault.origin",
+        "compute.gpu",
+        "compute.igpu",
+        "compute.npu",
+        "gateway",
+        "web.prod",
+        "client",
+        "control.plane",
+        "memory.store"
+      ]
+    },
+    "ipv4": {
+      "type": "string",
+      "pattern": "^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$"
+    },
+    "hostname": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]([A-Za-z0-9.-]{0,252})$"
+    },
+    "principal": {
+      "type": "string",
+      "pattern": "^user:[^@:/\\\\\\s]([^@:/\\\\]{0,62}[^@:/\\\\\\s])?@[a-z0-9][a-z0-9-]{0,62}$",
+      "description": "Who, as a string: user:<login>@<node-id>. <login> is the OS account name exactly as the OS reports it for the running process (POSIX: getpwuid(getuid()) through NSS, so local, SSSD, authd and Kanidm accounts all work; Windows: the account name of the current WindowsIdentity without the DOMAIN\\ prefix). Never typed, never read from $USER/$USERNAME. <node-id> is the inventory id of the node that account lives on. Same identity rule as the vnodes admin check. Examples: user:alice@ctl-1, user:Alex Example@alex-pc. Other kinds (group:, service:) are reserved for later versions."
+    },
+    "enrolment": {
+      "type": "object",
+      "required": [
+        "source",
+        "at",
+        "by"
+      ],
+      "additionalProperties": false,
+      "description": "How the node entered the inventory (v2.1). Written once with the add; never changed afterwards. Independent of provenance, which vnodes keeps writing on every change.",
+      "properties": {
+        "source": {
+          "enum": [
+            "manual",
+            "kit",
+            "probe",
+            "mdns"
+          ],
+          "description": "manual = an admin ran vnodes add; kit = from an enrolment kit request; probe = capability probe proposal; mdns = discovery (not implemented)."
+        },
+        "at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "When the record was made (kit: request created_at; manual: proposal time)."
+        },
+        "by": {
+          "$ref": "#/$defs/principal",
+          "description": "Who started the enrolment: the operator who ran the kit on the node, or the admin who proposed it."
+        },
+        "request_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "kit: sha256 of the enrolment request file the record came from."
+        }
+      }
+    }
+  }
+}

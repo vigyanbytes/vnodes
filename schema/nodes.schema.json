@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:vigyan-nodes:schema:nodes:2.1",
+  "x-schema-version": "2.1",
+  "title": "vnodes node inventory (schema v2.1)",
+  "description": "The single source of which machines exist. Declared by hand and changed only through `vnodes` plan -> approve -> apply. Holds names, addresses and declared capabilities only: never keys, tokens or passwords. Field names from document version 1 (name, ssh, os, role, roles, primary_for, host, enabled, clis, bash) are kept so v1 readers keep working. v2.1: the node definition is the standalone node.schema.json (urn:vigyan-nodes:schema:node:2.1); the document version stays 2 because 2.1 only adds optional fields.",
+  "type": "object",
+  "required": [
+    "version",
+    "nodes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "version": {
+      "const": 2
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/inventory_node"
+      }
+    }
+  },
+  "$defs": {
+    "inventory_node": {
+      "description": "A node record as stored in the inventory: the node schema plus the fields vnodes owns.",
+      "allOf": [
+        {
+          "$ref": "urn:vigyan-nodes:schema:node:2.1"
+        },
+        {
+          "required": [
+            "status",
+            "admin_group",
+            "provenance"
+          ]
+        }
+      ]
+    }
+  }
+}

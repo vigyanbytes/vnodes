@@ -1,0 +1,13 @@
+{
+  "id": "edge-1",
+  "name": "edge-1",
+  "display_name": "Edge box",
+  "ssh": "edge-1",
+  "os": "linux",
+  "shell": "bash",
+  "owner": "user:alice@edge-1",
+  "roles": ["client"],
+  "addresses": { "lan_name": "edge-1.home.example", "lan_ipv4": "192.0.2.21" },
+  "capabilities": { "gpu": null, "ram_gb": 16, "cpu_cores": 8, "basis": "declared" },
+  "enrolment": { "source": "kit", "at": "2026-01-15T09:00:00Z", "by": "user:alice@edge-1" }
+}
